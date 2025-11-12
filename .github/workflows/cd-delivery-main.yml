@@ -54,7 +54,7 @@ jobs:
           dotnet tool install --global dotnet-sonarscanner
           export PATH="$PATH:/home/runner/.dotnet/tools"
           dotnet sonarscanner begin \
-            /k:"mana-food_mana-food-microsservice-pagamento" \
+            /k:"mana-food_mana-food-microsservico-pagamento" \
             /o:"mana-food" \
             /d:sonar.host.url="$SONAR_HOST_URL" \
             /d:sonar.login="$SONAR_TOKEN" \
