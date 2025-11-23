@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mana-food-payment-config
+  namespace: default
+data:
+  notification_url: "https://your-notification-url.example.com/api/webhooks/mercadopago/payment-confirmation"
