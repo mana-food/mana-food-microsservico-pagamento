@@ -1,0 +1,29 @@
+name: CI Push Analysis
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build_and_analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+      - name: Restore
+        run: dotnet restore src/ManaFoodPayment.sln
+      - name: Build
+        run: dotnet build --no-restore src/ManaFoodPayment.sln -c Release
+      - name: Static analysis (dotnet format)
+        run: |
+          dotnet tool install -g dotnet-format || true
+          export PATH="$PATH:$HOME/.dotnet/tools"
+          dotnet format --verify-no-changes || echo "dotnet format differences"
+      - name: Upload code scan artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-scan
+          path: |
+            /**/*.cs

@@ -1,0 +1,33 @@
+name: CD Delivery Main
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+      - name: Build
+        run: |
+          dotnet restore src/ManaFoodPayment.sln
+          dotnet build --no-restore src/ManaFoodPayment.sln -c Release
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./src/ManaFoodPayment.Api
+          push: true
+          tags: ghcr.io/mana-food/mana-food-microsservice-pagamento:latest
+          # To publish to GHCR, set secrets.GHCR_TOKEN
+      - name: Trigger infra pipeline
+        env:
+          INFRA_REPO: mana-food/mana-food-infra
+          DISPATCH_TOKEN: ${{ secrets.DEPLOY_TRIGGER_TOKEN }}
+        run: |
+          curl -X POST -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $DISPATCH_TOKEN" \
+            https://api.github.com/repos/$INFRA_REPO/dispatches -d '{"event_type":"deploy-microservice","client_payload":{"service":"mana-food-microsservice-pagamento","image":"ghcr.io/mana-food/mana-food-microsservice-pagamento:latest"}}'

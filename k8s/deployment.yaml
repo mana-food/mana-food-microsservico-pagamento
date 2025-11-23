@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mana-food-payment
+  namespace: default
+  labels:
+    app: mana-food-payment
+    version: v1
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: mana-food-payment
+  template:
+    metadata:
+      labels:
+        app: mana-food-payment
+        version: v1
+    spec:
+      containers:
+      - name: mana-food-payment
+        image: ghcr.io/mana-food/mana-food-microsservice-pagamento:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+          name: http
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "256Mi"
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "Production"
+        - name: PaymentProvider__AccessToken
+          valueFrom:
+            secretKeyRef:
+              name: mana-food-payment-secrets
+              key: payment_access_token
+        - name: PaymentProvider__UserId
+          valueFrom:
+            secretKeyRef:
+              name: mana-food-payment-secrets
+              key: payment_user_id
+        - name: PaymentProvider__ExternalPosId
+          valueFrom:
+            secretKeyRef:
+              name: mana-food-payment-secrets
+              key: payment_external_pos_id
+        - name: PaymentProvider__NotificationUrl
+          valueFrom:
+            configMapKeyRef:
+              name: mana-food-payment-config
+              key: notification_url
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 80
+          initialDelaySeconds: 20
+          periodSeconds: 20
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          failureThreshold: 6
+        startupProbe:
+          httpGet:
+            path: /healthz
+            port: 80
+          periodSeconds: 5
+          failureThreshold: 30
