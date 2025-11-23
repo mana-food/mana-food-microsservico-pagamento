@@ -1,31 +1,10 @@
-<<<<<<< HEAD
-name: CI Pull Request
-=======
 name: "[Etapa 1] CI Pull Request"
 
->>>>>>> main
 on:
   pull_request:
     branches: [ "main" ]
 
 jobs:
-<<<<<<< HEAD
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '9.0.x'
-      - name: Restore
-        run: dotnet restore src/ManaFoodPayment.sln
-      - name: Build
-        run: dotnet build --no-restore src/ManaFoodPayment.sln -c Release
-      - name: Test
-        run: |
-          if [ -d "tests" ]; then dotnet test --no-build --verbosity normal; else echo "No tests found"; fi
-=======
   build-and-test:
     runs-on: ubuntu-latest
     steps:
@@ -54,4 +33,3 @@ jobs:
           path: |
             **/TestResults
             **/coverage.opencover.xml
->>>>>>> main
