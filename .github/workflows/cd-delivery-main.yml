@@ -1,14 +1,16 @@
-name: "[Etapa 2] Entrega Contínua"
+name: "[Etapa 4] Entrega Contínua"
 
 on:
   push:
     branches: [ "main" ]
 
 env:
+  # Use docker.io for Docker Hub if empty
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
+  # 1. Build e Testes
   build-and-tests:
     runs-on: ubuntu-latest
     steps:
@@ -28,7 +30,8 @@ jobs:
 
       - name: Rodar Testes
         run: dotnet test --configuration Release --no-build --verbosity normal
-
+  
+  # 2. Análise SonarQube
   sonarqube-analysis:
     runs-on: ubuntu-latest
     needs: build-and-tests
@@ -61,6 +64,7 @@ jobs:
           dotnet build --no-incremental
           dotnet sonarscanner end /d:sonar.login="$SONAR_TOKEN"
 
+  # 3. Build e Push da Imagem Docker
   docker-build-push:
     runs-on: ubuntu-latest
     needs: sonarqube-analysis
@@ -68,6 +72,7 @@ jobs:
       contents: read
       packages: write
       id-token: write
+
     steps:
       - name: Fazer checkout do repositório
         uses: actions/checkout@v4
@@ -102,7 +107,7 @@ jobs:
         uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
         with:
           context: .
-          file: src/ManaFoodPayment.Api/Dockerfile # Atualize o caminho se necessário
+          file: Presentation/ManaFood.WebAPI/Dockerfile # IMPORTANTE: atualizar o caminho do Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

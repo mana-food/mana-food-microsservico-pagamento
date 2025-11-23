@@ -1,25 +1,23 @@
-name: "[Etapa 1.1] CI Push Analysis"
-
+name: "[Etapa 4] Análise de Pushes"
 on:
   push:
-    branches: [ "main" ]
-
-env:
-  DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+    branches-ignore:
+      - main   # ignora pushes na main, só roda nas outras branches
 
 jobs:
-  build-and-test:
+  # Steps: Build, Testes e verificação de cobertura de código
+  analise-de-pushes:
+
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout código
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Configurar .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.0.x'
+          dotnet-version: 9.0.x
 
       - name: Restaurar dependências
         run: dotnet restore
@@ -27,31 +25,15 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release --no-restore
 
-      - name: Rodar Testes e gerar cobertura
+      - name: Rodar Testes e Cobertura
         run: |
-          dotnet test --configuration Release --no-build --verbosity normal /p:CollectCoverage=true /p:CoverletOutputFormat=opencover
+          dotnet test --configuration Release --no-build --verbosity normal \
+            /p:CollectCoverage=true \
+            /p:CoverletOutputFormat=opencover \
+            /p:CoverletOutput=./TestResults/coverage.opencover.xml
 
-      - name: Upload coverage
-        if: always()
+      - name: Upload cobertura de código
         uses: actions/upload-artifact@v4
         with:
-          name: coverage
+          name: cobertura-opencover
           path: '**/coverage.opencover.xml'
-
-      - name: Executar SonarQube Scanner
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        run: |
-          dotnet tool install --global dotnet-sonarscanner
-          export PATH="$PATH:/home/runner/.dotnet/tools"
-          dotnet sonarscanner begin \
-            /k:"mana-food_mana-food-microsservico-pagamento" \
-            /o:"mana-food" \
-            /d:sonar.host.url="$SONAR_HOST_URL" \
-            /d:sonar.login="$SONAR_TOKEN" \
-            /d:sonar.branch.name="main" \
-            /d:sonar.exclusions="**/bin/**,**/obj/**,**/*.dll,**/*.exe" \
-            /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml"
-          dotnet build --no-incremental
-          dotnet sonarscanner end /d:sonar.login="$SONAR_TOKEN"
