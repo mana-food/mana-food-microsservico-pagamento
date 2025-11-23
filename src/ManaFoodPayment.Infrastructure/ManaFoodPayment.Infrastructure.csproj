@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 <Project Sdk="Microsoft.NET.Sdk">
+=======
+﻿<Project Sdk="Microsoft.NET.Sdk">
+>>>>>>> main
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
@@ -11,8 +15,11 @@
     <ProjectReference Include="..\ManaFoodPayment.Domain\ManaFoodPayment.Domain.csproj" />
   </ItemGroup>
 
+<<<<<<< HEAD
   <ItemGroup>
     <PackageReference Include="QRCoder" Version="1.4.6" />
   </ItemGroup>
 
+=======
+>>>>>>> main
 </Project>

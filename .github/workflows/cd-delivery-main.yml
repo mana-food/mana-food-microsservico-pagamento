@@ -1,33 +1,103 @@
 name: CD Delivery Main
+
 on:
   push:
     branches: [ "main" ]
 
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
 jobs:
-  build_and_deploy:
+  build-and-tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Setup .NET
+      - name: Checkout código
+        uses: actions/checkout@v4
+      - name: Configurar .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+      - name: Restaurar dependências
+        run: dotnet restore
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+      - name: Rodar Testes
+        run: dotnet test --configuration Release --no-build --verbosity normal
+  sonarqube-analysis:
+    runs-on: ubuntu-latest
+    needs: build-and-tests
+    steps:
+      - name: Fazer checkout do repositório
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Configurar .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.0.x'
-      - name: Build
-        run: |
-          dotnet restore src/ManaFoodPayment.sln
-          dotnet build --no-restore src/ManaFoodPayment.sln -c Release
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./src/ManaFoodPayment.Api
-          push: true
-          tags: ghcr.io/mana-food/mana-food-microsservice-pagamento:latest
-          # To publish to GHCR, set secrets.GHCR_TOKEN
-      - name: Trigger infra pipeline
+      - name: Executar Análise SonarQube
         env:
-          INFRA_REPO: mana-food/mana-food-infra
-          DISPATCH_TOKEN: ${{ secrets.DEPLOY_TRIGGER_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: |
-          curl -X POST -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer $DISPATCH_TOKEN" \
-            https://api.github.com/repos/$INFRA_REPO/dispatches -d '{"event_type":"deploy-microservice","client_payload":{"service":"mana-food-microsservice-pagamento","image":"ghcr.io/mana-food/mana-food-microsservice-pagamento:latest"}}'
+          dotnet tool install --global dotnet-sonarscanner
+          export PATH="$PATH:/home/runner/.dotnet/tools"
+          dotnet sonarscanner begin \
+            /k:"mana-food_mana-food-microsservico-pagamento" \
+            /o:"mana-food" \
+            /d:sonar.host.url="$SONAR_HOST_URL" \
+            /d:sonar.login="$SONAR_TOKEN" \
+            /d:sonar.branch.name="main" \
+            /d:sonar.exclusions="**/bin/**,**/obj/**,**/*.dll,**/*.exe" \
+            /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml"
+          dotnet build --no-incremental
+          dotnet sonarscanner end /d:sonar.login="$SONAR_TOKEN"
+  docker-build-push:
+    runs-on: ubuntu-latest
+    needs: sonarqube-analysis
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    steps:
+      - name: Fazer checkout do repositório
+        uses: actions/checkout@v4
+      - name: Instalar cosign
+        if: github.event_name != 'pull_request'
+        uses: sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20 #v3.5.0
+        with:
+          cosign-release: 'v2.2.4'
+      - name: Configurar Docker Buildx
+        uses: docker/setup-buildx-action@f95db51fddba0c2d1ec667646a06c2ce06100226 # v3.0.0
+      - name: Login no registro ${{ env.REGISTRY }}
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Extrair metadados Docker
+        id: meta
+        uses: docker/metadata-action@96383f45573cb7f253c731d3b3ab81c87ef81934 # v5.0.0
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            latest
+      - name: Construir e enviar imagem Docker
+        id: docker-build-and-push-image
+        uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
+        with:
+          context: .
+          file: src/ManaFoodPayment.Api/Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Assinar a imagem Docker publicada
+        if: ${{ github.event_name != 'pull_request' }}
+        env:
+          TAGS: ${{ steps.meta.outputs.tags }}
+          DIGEST: ${{ steps.docker-build-and-push-image.outputs.digest }}
+        run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
