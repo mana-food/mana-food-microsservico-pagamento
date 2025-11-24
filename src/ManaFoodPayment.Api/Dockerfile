@@ -5,13 +5,13 @@ EXPOSE 80
 
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
-COPY src/ManaFoodPayment.Api/ManaFoodPayment.Api.csproj src/ManaFoodPayment.Api/
-COPY src/ManaFoodPayment.Application/ManaFoodPayment.Application.csproj src/ManaFoodPayment.Application/
-COPY src/ManaFoodPayment.Infrastructure/ManaFoodPayment.Infrastructure.csproj src/ManaFoodPayment.Infrastructure/
+COPY ManaFoodPayment.Api/ManaFoodPayment.Api.csproj ManaFoodPayment.Api/
+COPY ManaFoodPayment.Application/ManaFoodPayment.Application.csproj ManaFoodPayment.Application/
+COPY ManaFoodPayment.Infrastructure/ManaFoodPayment.Infrastructure.csproj ManaFoodPayment.Infrastructure/
 COPY . .
-RUN dotnet restore "src/ManaFoodPayment.Api/ManaFoodPayment.Api.csproj"
-RUN dotnet build "src/ManaFoodPayment.Api/ManaFoodPayment.Api.csproj" -c Release -o /app/build
-RUN dotnet publish "src/ManaFoodPayment.Api/ManaFoodPayment.Api.csproj" -c Release -o /app/publish
+RUN dotnet restore "ManaFoodPayment.Api/ManaFoodPayment.Api.csproj"
+RUN dotnet build "ManaFoodPayment.Api/ManaFoodPayment.Api.csproj" -c Release -o /app/build
+RUN dotnet publish "ManaFoodPayment.Api/ManaFoodPayment.Api.csproj" -c Release -o /app/publish
 
 FROM base AS final
 WORKDIR /app
