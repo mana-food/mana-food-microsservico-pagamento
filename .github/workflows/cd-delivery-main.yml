@@ -106,8 +106,8 @@ jobs:
         id: docker-build-and-push-image
         uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
         with:
-          context: .
-          file: Presentation/ManaFood.WebAPI/Dockerfile # IMPORTANTE: atualizar o caminho do Dockerfile
+          context: src/ManaFoodPayment.Api
+          file: src/ManaFoodPayment.Api/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
