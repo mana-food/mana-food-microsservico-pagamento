@@ -24,8 +24,8 @@ public class PaymentSteps
     private readonly Mock<HttpMessageHandler> _mockHttpHandler;
     private HttpClient _httpClient = null!;
     
-    private IPaymentService _paymentService = null!;
-    private IWebhookService _webhookService = null!;
+    private PaymentService _paymentService = null!;
+    private WebhookService _webhookService = null!;
     
     private CreatePaymentResponseDto? _paymentResponse;
     private Exception? _exception;
@@ -88,7 +88,7 @@ public class PaymentSteps
     }
 
     [Given(@"o pedido contém (.*) itens no valor total de R\$ (.*)")]
-    public void DadoOPedidoContemItensNoValorTotal(int itemCount, decimal totalAmount)
+    public static void DadoOPedidoContemItensNoValorTotal(int itemCount, decimal totalAmount)
     {
         // Validação já configurada no step anterior
     }

@@ -38,7 +38,8 @@ public class MercadoPagoWebhookReceiverTests
     [Fact]
     public async Task ReceivePaymentConfirmation_WithNullPayload_ReturnsBadRequest()
     {
-        var result = await _controller.ReceivePaymentConfirmation(null);
+        MercadoPagoWebhookPayload? nullPayload = null;
+        var result = await _controller.ReceivePaymentConfirmation(nullPayload!);
 
         result.Should().BeOfType<BadRequestObjectResult>();
         var badRequestResult = result as BadRequestObjectResult;
