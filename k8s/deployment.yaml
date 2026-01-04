@@ -17,6 +17,7 @@ spec:
         app: mana-food-payment
         version: v1
     spec:
+      automountServiceAccountToken: false
       containers:
       - name: mana-food-payment
         image: ghcr.io/mana-food/mana-food-microsservico-pagamento:latest

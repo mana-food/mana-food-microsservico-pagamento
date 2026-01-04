@@ -28,6 +28,7 @@ FROM build AS publish
 RUN dotnet publish "ManaFoodPayment.Api.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
+USER app
 WORKDIR /app
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "ManaFoodPayment.Api.dll"]

@@ -17,6 +17,7 @@ RUN dotnet build "ManaFoodPayment.Api/ManaFoodPayment.Api.csproj" -c Release -o 
 RUN dotnet publish "ManaFoodPayment.Api/ManaFoodPayment.Api.csproj" -c Release -o /app/publish
 
 FROM base AS final
+USER app
 WORKDIR /app
 COPY --from=build /app/publish .
 ENTRYPOINT ["dotnet", "ManaFoodPayment.Api.dll"]
