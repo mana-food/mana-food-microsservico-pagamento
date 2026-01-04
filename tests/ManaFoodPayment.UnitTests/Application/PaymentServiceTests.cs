@@ -113,8 +113,8 @@ _mockOrderServiceClient
         Func<Task> act = async () => await _service.CreatePaymentAsync(orderId);
 
         // Assert
-        await act.Should().ThrowAsync<Exception>()
-            .WithMessage($"Pedido {orderId} não encontrado no Order Service.");
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage($"*Pedido {orderId} não encontrado no Order Service.*");
     }
 
     [Fact]
@@ -158,8 +158,8 @@ _mockOrderServiceClient
         Func<Task> act = async () => await _service.CreatePaymentAsync(orderId);
 
         // Assert
-        await act.Should().ThrowAsync<Exception>()
-            .WithMessage("Erro de chamada: BadRequest");
+        await act.Should().ThrowAsync<HttpRequestException>()
+            .WithMessage("*Erro ao criar pagamento no MercadoPago: BadRequest*");
     }
 
     [Fact]
