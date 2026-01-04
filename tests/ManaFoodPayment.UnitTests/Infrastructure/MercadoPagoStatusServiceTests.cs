@@ -171,4 +171,40 @@ public class MercadoPagoStatusServiceTests
         await Assert.ThrowsAsync<HttpRequestException>(async () =>
             await service.GetPaymentStatusAsync(paymentId));
     }
+
+    [Fact]
+    public async Task GetPaymentStatusAsync_WithNullPaymentId_ThrowsArgumentException()
+    {
+        var service = new MercadoPagoStatusService(_httpClient, _mockConfig.Object);
+
+        await Assert.ThrowsAsync<ArgumentException>(async () =>
+            await service.GetPaymentStatusAsync(null!));
+    }
+
+    [Fact]
+    public async Task GetPaymentStatusAsync_WithEmptyPaymentId_ThrowsArgumentException()
+    {
+        var service = new MercadoPagoStatusService(_httpClient, _mockConfig.Object);
+
+        await Assert.ThrowsAsync<ArgumentException>(async () =>
+            await service.GetPaymentStatusAsync(string.Empty));
+    }
+
+    [Fact]
+    public async Task GetPaymentStatusAsync_WithWhitespacePaymentId_ThrowsArgumentException()
+    {
+        var service = new MercadoPagoStatusService(_httpClient, _mockConfig.Object);
+
+        await Assert.ThrowsAsync<ArgumentException>(async () =>
+            await service.GetPaymentStatusAsync("   "));
+    }
+
+    [Fact]
+    public async Task GetPaymentStatusAsync_WithInvalidPaymentIdFormat_ThrowsArgumentException()
+    {
+        var service = new MercadoPagoStatusService(_httpClient, _mockConfig.Object);
+
+        await Assert.ThrowsAsync<ArgumentException>(async () =>
+            await service.GetPaymentStatusAsync("invalid-id"));
+    }
 }
