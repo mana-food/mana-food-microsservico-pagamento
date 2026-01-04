@@ -45,7 +45,7 @@ jobs:
             /d:sonar.host.url="https://sonarcloud.io" \
             /d:sonar.token="$SONAR_TOKEN" \
             /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml" \
-            /d:sonar.coverage.exclusions="**Tests/**,**/*.Tests/**,**/Program.cs,**/Migrations/**" \
+            /d:sonar.coverage.exclusions="**/*Tests*/**,**/Program.cs,**/Migrations/**" \
             /d:sonar.exclusions="**/bin/**,**/obj/**,**/*.dll,**/*.exe,**/Migrations/**"
 
       - name: Build for Analysis
@@ -56,10 +56,16 @@ jobs:
           dotnet test --configuration Release --no-build --verbosity normal \
             /p:CollectCoverage=true \
             /p:CoverletOutputFormat=opencover \
-            /p:CoverletOutput=./coverage.opencover.xml
+            /p:CoverletOutput=./coverage.opencover.xml \
+            /p:MergeWith=./coverage.opencover.xml
 
       - name: List Coverage Files
-        run: find . -name "coverage.opencover.xml" -type f
+        run: |
+          echo "=== Coverage files generated ==="
+          find . -name "coverage.opencover.xml" -type f
+          echo ""
+          echo "=== File sizes ==="
+          find . -name "coverage.opencover.xml" -exec ls -lh {} \;
 
       - name: End SonarCloud Analysis
         env:
