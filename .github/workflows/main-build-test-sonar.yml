@@ -44,7 +44,7 @@ jobs:
             /o:"mana-food" \
             /d:sonar.host.url="https://sonarcloud.io" \
             /d:sonar.token="$SONAR_TOKEN" \
-            /d:sonar.cs.opencover.reportsPaths="**/TestResults/coverage.opencover.xml" \
+            /d:sonar.cs.opencover.reportsPaths="tests/**/TestResults/coverage.opencover.xml" \
             /d:sonar.coverage.exclusions="**Tests/**,**/*.Tests/**,**/Program.cs" \
             /d:sonar.exclusions="**/bin/**,**/obj/**,**/*.dll,**/*.exe,**/Migrations/**"
 
@@ -56,7 +56,11 @@ jobs:
           dotnet test --configuration Release --no-build --verbosity normal \
             /p:CollectCoverage=true \
             /p:CoverletOutputFormat=opencover \
-            /p:CoverletOutput=./TestResults/
+            /p:CoverletOutput=./TestResults/ \
+            /p:MergeWith=./TestResults/coverage.opencover.xml
+
+      - name: List Coverage Files
+        run: find . -name "*.opencover.xml" -type f
 
       - name: End SonarCloud Analysis
         env:
