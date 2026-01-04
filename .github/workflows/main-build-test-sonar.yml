@@ -44,7 +44,7 @@ jobs:
             /o:"mana-food" \
             /d:sonar.host.url="https://sonarcloud.io" \
             /d:sonar.token="$SONAR_TOKEN" \
-            /d:sonar.cs.opencover.reportsPaths="**/TestResults/**/coverage.opencover.xml" \
+            /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml" \
             /d:sonar.coverage.exclusions="**Tests/**,**/*.Tests/**,**/Program.cs,**/Migrations/**" \
             /d:sonar.exclusions="**/bin/**,**/obj/**,**/*.dll,**/*.exe,**/Migrations/**"
 
@@ -54,12 +54,12 @@ jobs:
       - name: Run Tests with Coverage
         run: |
           dotnet test --configuration Release --no-build --verbosity normal \
-            --collect:"XPlat Code Coverage" \
-            --results-directory ./TestResults \
-            -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
+            /p:CollectCoverage=true \
+            /p:CoverletOutputFormat=opencover \
+            /p:CoverletOutput=./coverage.opencover.xml
 
       - name: List Coverage Files
-        run: find . -name "coverage.opencover.xml" -o -name "coverage.cobertura.xml" -type f
+        run: find . -name "coverage.opencover.xml" -type f
 
       - name: End SonarCloud Analysis
         env:
@@ -71,5 +71,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
-          path: '**/TestResults/**/coverage.opencover.xml'
+          path: '**/coverage.opencover.xml'
           retention-days: 30
