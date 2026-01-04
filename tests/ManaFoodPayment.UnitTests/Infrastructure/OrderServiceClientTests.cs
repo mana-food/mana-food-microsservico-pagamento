@@ -165,4 +165,33 @@ public class OrderServiceClientTests
 
         _httpClient.Timeout.Should().Be(TimeSpan.FromSeconds(30));
     }
+
+    [Fact]
+    public void Constructor_WithInvalidBaseUrl_ThrowsArgumentException()
+    {
+        _mockConfiguration.Setup(c => c["OrderService:BaseUrl"]).Returns("invalid-url");
+
+        Assert.Throws<ArgumentException>(() =>
+            new OrderServiceClient(_httpClient, _mockConfiguration.Object, _mockLogger.Object));
+    }
+
+    [Fact]
+    public void Constructor_WithEmptyBaseUrl_ThrowsArgumentException()
+    {
+        _mockConfiguration.Setup(c => c["OrderService:BaseUrl"]).Returns(string.Empty);
+
+        Assert.Throws<ArgumentException>(() =>
+            new OrderServiceClient(_httpClient, _mockConfiguration.Object, _mockLogger.Object));
+    }
+
+    [Fact]
+    public void Constructor_WithNullBaseUrl_UsesDefaultValue()
+    {
+        _mockConfiguration.Setup(c => c["OrderService:BaseUrl"]).Returns((string?)null);
+
+        var client = new OrderServiceClient(_httpClient, _mockConfiguration.Object, _mockLogger.Object);
+
+        _httpClient.BaseAddress.Should().NotBeNull();
+        _httpClient.BaseAddress!.ToString().Should().Be("http://order-api-service:8080/");
+    }
 }
