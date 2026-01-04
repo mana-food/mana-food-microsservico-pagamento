@@ -19,11 +19,14 @@ spec:
     spec:
       containers:
       - name: mana-food-payment
-        image: ghcr.io/mana-food/mana-food-microsservice-pagamento:latest
+        image: ghcr.io/mana-food/mana-food-microsservico-pagamento:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 80
           name: http
+        envFrom:
+        - configMapRef:
+            name: mana-food-payment-config
         resources:
           requests:
             cpu: "100m"
@@ -31,29 +34,6 @@ spec:
           limits:
             cpu: "500m"
             memory: "512Mi"
-        env:
-        - name: ASPNETCORE_ENVIRONMENT
-          value: "Production"
-        - name: PaymentProvider__AccessToken
-          valueFrom:
-            secretKeyRef:
-              name: mana-food-payment-secrets
-              key: payment_access_token
-        - name: PaymentProvider__UserId
-          valueFrom:
-            secretKeyRef:
-              name: mana-food-payment-secrets
-              key: payment_user_id
-        - name: PaymentProvider__ExternalPosId
-          valueFrom:
-            secretKeyRef:
-              name: mana-food-payment-secrets
-              key: payment_external_pos_id
-        - name: PaymentProvider__NotificationUrl
-          valueFrom:
-            configMapKeyRef:
-              name: mana-food-payment-config
-              key: notification_url
         livenessProbe:
           httpGet:
             path: /healthz

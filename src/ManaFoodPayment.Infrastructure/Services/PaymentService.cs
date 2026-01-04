@@ -6,40 +6,66 @@ using System.Text.Json;
 using ManaFoodPayment.Application.Dtos;
 using ManaFoodPayment.Application.Interfaces;
 using ManaFoodPayment.Infrastructure.Configurations;
-using ManaFoodPayment.Infrastructure.Repositories;
-using ManaFoodPayment.Domain.Entities;
 using QRCoder;
+using Microsoft.Extensions.Logging;
 
 public class PaymentService : IPaymentService
 {
     private readonly HttpClient _httpClient;
     private readonly IPaymentProviderConfig _config;
-    private readonly IOrderRepository _orderRepository;
+    private readonly IOrderServiceClient _orderServiceClient;
+    private readonly ILogger<PaymentService> _logger;
 
-    public PaymentService(HttpClient httpClient, IPaymentProviderConfig config, IOrderRepository orderRepository)
+    public PaymentService(
+        HttpClient httpClient, 
+        IPaymentProviderConfig config, 
+        IOrderServiceClient orderServiceClient,
+        ILogger<PaymentService> logger)
     {
         _httpClient = httpClient;
         _config = config;
-        _orderRepository = orderRepository;
+        _orderServiceClient = orderServiceClient;
+        _logger = logger;
     }
 
-    public async Task<CreatePaymentResponse> CreatePaymentAsync(Guid orderId)
+    public async Task<CreatePaymentResponseDto> CreatePaymentAsync(Guid orderId)
     {
-        var order = await _orderRepository.GetOrderByIdAsync(orderId);
+        _logger.LogInformation("Creating payment for order {OrderId}", orderId);
+        
+        // BUSCAR PEDIDO VIA REST DO ORDER SERVICE
+        var orderDto = await _orderServiceClient.GetOrderByIdAsync(orderId);
 
-        if (order == null)
-            throw new Exception($"Pedido {orderId} não encontrado.");
+        if (orderDto == null)
+        {
+            _logger.LogWarning("Order {OrderId} not found", orderId);
+            throw new Exception($"Pedido {orderId} não encontrado no Order Service.");
+        }
 
-        var externalReference = order.Id.ToString();
+        _logger.LogInformation("Order {OrderId} found with {ItemCount} items, total: {TotalAmount}", 
+            orderId, orderDto.Items.Count, orderDto.TotalAmount);
+
+        var externalReference = orderDto.Id.ToString();
+
+        var items = orderDto.Items.Select(item => new
+        {
+            sku_number = item.ProductId.ToString(),
+            category = "marketplace",
+            title = item.ProductName,
+            description = item.ProductDescription ?? "Produto sem descrição",
+            unit_price = item.UnitPrice,
+            quantity = item.Quantity,
+            unit_measure = "unit",
+            total_amount = item.TotalAmount
+        }).ToArray();
 
         var body = new
         {
             external_reference = externalReference,
             title = $"Pedido {externalReference[..8]}",
-            description = $"Pedido com valor {order.TotalAmount}",
+            description = $"Pedido com {items.Length} item(ns)",
             notification_url = _config.NotificationUrl,
-            total_amount = order.TotalAmount,
-            items = Array.Empty<object>(),
+            total_amount = orderDto.TotalAmount,
+            items = items,
             cash_out = new { amount = 0 }
         };
 
@@ -73,7 +99,7 @@ public class PaymentService : IPaymentService
 
         string qrCodeBase64 = GenerateQrCodeBase64(qrData!);
 
-        return new CreatePaymentResponse
+        return new CreatePaymentResponseDto
         {
             PaymentId = paymentId!,
             QrData = qrData!,

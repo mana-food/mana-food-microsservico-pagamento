@@ -16,9 +16,17 @@ public class PaymentController : ControllerBase
     }
 
     [HttpPost("create")]
-    public async Task<ActionResult<CreatePaymentResponse>> Create([FromBody] CreatePaymentRequest request)
+    public async Task<ActionResult<CreatePaymentResponseDto>> Create([FromBody] CreatePaymentRequestDto request)
     {
         var response = await _paymentService.CreatePaymentAsync(request.OrderId);
         return Ok(response);
+    }
+
+    [HttpGet("qr-image/{orderId}")]
+    public async Task<IActionResult> GetQrImage(Guid orderId)
+    {
+        var response = await _paymentService.CreatePaymentAsync(orderId);
+        var imageBytes = Convert.FromBase64String(response.QrCodeBase64);
+        return File(imageBytes, "image/png");
     }
 }

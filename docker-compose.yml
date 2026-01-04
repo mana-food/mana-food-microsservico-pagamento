@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  # API do microsserviço de Pagamento - Stateless
+  manafood-payment-api:
+    container_name: manafood-payment-api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8082:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - OrderService__BaseUrl=http://order-api-service:8080
+    networks:
+      - manafood-network
+
+networks:
+  manafood-network:
+    external: true
