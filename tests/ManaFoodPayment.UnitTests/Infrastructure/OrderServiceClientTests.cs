@@ -132,21 +132,19 @@ public class OrderServiceClientTests
         _mockHttpMessageHandler
             .Protected()
             .Setup<Task<HttpResponseMessage>>(
-                "SendAsync",
-                ItExpr.IsAny<HttpRequestMessage>(),
-                ItExpr.IsAny<CancellationToken>())
-            .ReturnsAsync(new HttpResponseMessage
-            {
-                StatusCode = HttpStatusCode.InternalServerError
-            });
+            "SendAsync",
+            ItExpr.IsAny<HttpRequestMessage>(),
+            ItExpr.IsAny<CancellationToken>())
+        .ReturnsAsync(new HttpResponseMessage
+        {
+            StatusCode = HttpStatusCode.InternalServerError
+        });
 
-        var client = new OrderServiceClient(_httpClient, _mockConfiguration.Object, _mockLogger.Object);
+    var client = new OrderServiceClient(_httpClient, _mockConfiguration.Object, _mockLogger.Object);
 
-        await Assert.ThrowsAsync<Exception>(async () =>
-            await client.GetOrderByIdAsync(orderId));
-    }
-
-    [Fact]
+    await Assert.ThrowsAsync<HttpRequestException>(async () =>
+        await client.GetOrderByIdAsync(orderId));
+}    [Fact]
     public void Constructor_UsesDefaultBaseUrl_WhenConfigurationIsEmpty()
     {
         var emptyConfig = new Mock<IConfiguration>();
