@@ -15,6 +15,7 @@ public class PaymentService : IPaymentService
     private readonly IPaymentProviderConfig _config;
     private readonly IOrderServiceClient _orderServiceClient;
     private readonly ILogger<PaymentService> _logger;
+    private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
 
     public PaymentService(
         HttpClient httpClient, 
@@ -78,7 +79,7 @@ public class PaymentService : IPaymentService
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _config.AccessToken);
         request.Headers.Add("X-Idempotency-Key", idempotencyKey);
 
-        var json = JsonSerializer.Serialize(body, new JsonSerializerOptions { WriteIndented = true });
+        var json = JsonSerializer.Serialize(body, JsonOptions);
 
         request.Content = new StringContent(json, Encoding.UTF8, "application/json");
 
@@ -107,7 +108,7 @@ public class PaymentService : IPaymentService
         };
     }
 
-    private string GenerateQrCodeBase64(string qrData)
+    private static string GenerateQrCodeBase64(string qrData)
     {
         using var qrGenerator = new QRCodeGenerator();
         using var qrCodeData = qrGenerator.CreateQrCode(qrData, QRCodeGenerator.ECCLevel.Q);

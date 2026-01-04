@@ -44,7 +44,7 @@ jobs:
             /o:"mana-food" \
             /d:sonar.host.url="https://sonarcloud.io" \
             /d:sonar.token="$SONAR_TOKEN" \
-            /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml" \
+            /d:sonar.cs.vscoveragexml.reportsPaths="**/TestResults/**/*.xml" \
             /d:sonar.coverage.exclusions="**/*Tests*/**,**/Program.cs,**/Migrations/**" \
             /d:sonar.exclusions="**/bin/**,**/obj/**,**/*.dll,**/*.exe,**/Migrations/**"
 
@@ -54,22 +54,19 @@ jobs:
       - name: Run Tests with Coverage
         run: |
           dotnet test --configuration Release --no-build --verbosity normal \
-            /p:CollectCoverage=true \
-            /p:CoverletOutputFormat=opencover \
-            /p:CoverletOutput=./coverage.opencover.xml \
-            /p:MergeWith=./coverage.opencover.xml
+            --collect:"XPlat Code Coverage" \
+            --results-directory ./TestResults/
 
       - name: List Coverage Files
         run: |
           echo "=== Coverage files generated ==="
-          find . -name "coverage.opencover.xml" -type f
+          find ./TestResults -type f -name "*.xml"
           echo ""
-          echo "=== File sizes ==="
-          find . -name "coverage.opencover.xml" -exec ls -lh {} \;
+          echo "=== File details ==="
+          find ./TestResults -type f -name "*.xml" -exec ls -lh {} \;
 
       - name: End SonarCloud Analysis
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: dotnet sonarscanner end /d:sonar.token="$SONAR_TOKEN"
 
@@ -77,5 +74,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
-          path: '**/coverage.opencover.xml'
+          path: './TestResults/**/*.xml'
           retention-days: 30
