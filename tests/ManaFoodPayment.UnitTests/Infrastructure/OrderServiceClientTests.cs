@@ -125,7 +125,7 @@ public class OrderServiceClientTests
     }
 
     [Fact]
-    public async Task GetOrderByIdAsync_WithHttpError_ThrowsException()
+    public async Task GetOrderByIdAsync_WithHttpError_ThrowsHttpRequestException()
     {
         var orderId = Guid.NewGuid();
 
@@ -140,11 +140,13 @@ public class OrderServiceClientTests
             StatusCode = HttpStatusCode.InternalServerError
         });
 
-    var client = new OrderServiceClient(_httpClient, _mockConfiguration.Object, _mockLogger.Object);
+        var client = new OrderServiceClient(_httpClient, _mockConfiguration.Object, _mockLogger.Object);
 
-    await Assert.ThrowsAsync<HttpRequestException>(async () =>
-        await client.GetOrderByIdAsync(orderId));
-}    [Fact]
+        var exception = await Assert.ThrowsAsync<HttpRequestException>(async () =>
+            await client.GetOrderByIdAsync(orderId));
+        
+        exception.Message.Should().Contain("Failed to communicate with Order Service");
+    }    [Fact]
     public void Constructor_UsesDefaultBaseUrl_WhenConfigurationIsEmpty()
     {
         var emptyConfig = new Mock<IConfiguration>();
