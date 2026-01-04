@@ -17,6 +17,11 @@ public class MercadoPagoStatusService : IPaymentStatusService
 
     public async Task<(string status, string orderId)> GetPaymentStatusAsync(string paymentId)
     {
+        if (string.IsNullOrWhiteSpace(paymentId) || !long.TryParse(paymentId, out _))
+        {
+            throw new ArgumentException("Invalid payment ID format", nameof(paymentId));
+        }
+
         _httpClient.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", _config.AccessToken);
 

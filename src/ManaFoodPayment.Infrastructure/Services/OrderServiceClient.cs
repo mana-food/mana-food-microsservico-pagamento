@@ -24,7 +24,12 @@ public class OrderServiceClient : IOrderServiceClient
         _logger = logger;
         _baseUrl = configuration["OrderService:BaseUrl"] ?? "http://order-api-service:8080";
         
-        _httpClient.BaseAddress = new Uri(_baseUrl);
+        if (string.IsNullOrWhiteSpace(_baseUrl) || !Uri.TryCreate(_baseUrl, UriKind.Absolute, out var uri))
+        {
+            throw new ArgumentException("Invalid OrderService BaseUrl configuration", nameof(configuration));
+        }
+
+        _httpClient.BaseAddress = uri;
         _httpClient.Timeout = TimeSpan.FromSeconds(30);
         
         _logger.LogInformation("OrderServiceClient configured with BaseUrl: {BaseUrl}", _baseUrl);
