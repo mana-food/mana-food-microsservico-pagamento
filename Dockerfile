@@ -3,6 +3,7 @@ FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
 WORKDIR /app
 EXPOSE 8080
 ENV ASPNETCORE_URLS=http://+:8080
+USER app
 
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
@@ -15,8 +16,11 @@ COPY ["src/ManaFoodPayment.Infrastructure/ManaFoodPayment.Infrastructure.csproj"
 
 RUN dotnet restore "ManaFoodPayment.Api/ManaFoodPayment.Api.csproj"
 
-# Copy everything else and build
-COPY src/ .
+# Copy source code explicitly
+COPY ["src/ManaFoodPayment.Api/", "ManaFoodPayment.Api/"]
+COPY ["src/ManaFoodPayment.Application/", "ManaFoodPayment.Application/"]
+COPY ["src/ManaFoodPayment.Domain/", "ManaFoodPayment.Domain/"]
+COPY ["src/ManaFoodPayment.Infrastructure/", "ManaFoodPayment.Infrastructure/"]
 WORKDIR "/src/ManaFoodPayment.Api"
 RUN dotnet build "ManaFoodPayment.Api.csproj" -c Release -o /app/build
 
