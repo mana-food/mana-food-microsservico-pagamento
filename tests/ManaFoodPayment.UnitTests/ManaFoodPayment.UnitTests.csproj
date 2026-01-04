@@ -8,12 +8,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="coverlet.collector" Version="6.0.2" />
-    <PackageReference Include="FluentAssertions" Version="7.0.0" />
+    <PackageReference Include="coverlet.collector" Version="6.0.4">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="FluentAssertions" Version="8.8.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
-    <PackageReference Include="Moq" Version="4.20.70" />
-    <PackageReference Include="SpecFlow.Tools.MsBuild.Generation" Version="3.9.74" />
-    <PackageReference Include="SpecFlow.xUnit" Version="3.9.74" />
+    <PackageReference Include="Moq" Version="4.20.72" />
     <PackageReference Include="xunit" Version="2.9.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
   </ItemGroup>
@@ -23,10 +25,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\ManaFoodPayment.Api\ManaFoodPayment.Api.csproj" />
+    <ProjectReference Include="..\..\src\ManaFoodPayment.Domain\ManaFoodPayment.Domain.csproj" />
     <ProjectReference Include="..\..\src\ManaFoodPayment.Application\ManaFoodPayment.Application.csproj" />
     <ProjectReference Include="..\..\src\ManaFoodPayment.Infrastructure\ManaFoodPayment.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\src\ManaFoodPayment.Domain\ManaFoodPayment.Domain.csproj" />
+    <ProjectReference Include="..\..\src\ManaFoodPayment.Api\ManaFoodPayment.Api.csproj" />
   </ItemGroup>
 
 </Project>

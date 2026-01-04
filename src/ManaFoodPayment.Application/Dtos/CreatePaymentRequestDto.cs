@@ -1,8 +1,6 @@
-using System;
-
 namespace ManaFoodPayment.Application.Dtos;
 
-public class CreatePaymentRequest
+public class CreatePaymentRequestDto
 {
     public Guid OrderId { get; set; }
 }
