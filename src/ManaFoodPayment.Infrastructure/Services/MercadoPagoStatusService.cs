@@ -17,7 +17,7 @@ public class MercadoPagoStatusService : IPaymentStatusService
 
     public async Task<(string status, string orderId)> GetPaymentStatusAsync(string paymentId)
     {
-        if (string.IsNullOrWhiteSpace(paymentId) || !long.TryParse(paymentId, out _))
+        if (string.IsNullOrWhiteSpace(paymentId) || !long.TryParse(paymentId, out var validatedId))
         {
             throw new ArgumentException("Invalid payment ID format", nameof(paymentId));
         }
@@ -25,7 +25,8 @@ public class MercadoPagoStatusService : IPaymentStatusService
         _httpClient.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", _config.AccessToken);
 
-        var response = await _httpClient.GetAsync($"https://api.mercadopago.com/v1/payments/{paymentId}");
+        var requestUri = new Uri($"https://api.mercadopago.com/v1/payments/{validatedId}");
+        var response = await _httpClient.GetAsync(requestUri);
 
         response.EnsureSuccessStatusCode();
 
