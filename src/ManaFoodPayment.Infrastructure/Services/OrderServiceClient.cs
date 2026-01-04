@@ -6,9 +6,6 @@ using ManaFoodPayment.Application.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
-/// <summary>
-/// Cliente HTTP para comunicação REST com o Order Service
-/// </summary>
 public class OrderServiceClient : IOrderServiceClient
 {
     private readonly HttpClient _httpClient;
@@ -22,7 +19,10 @@ public class OrderServiceClient : IOrderServiceClient
     {
         _httpClient = httpClient;
         _logger = logger;
-        _baseUrl = configuration["OrderService:BaseUrl"] ?? "http://order-api-service:8080";
+        
+        // Default para desenvolvimento local - em producao, appsettings/ConfigMap
+        const string defaultBaseUrl = "http://order-api-service:8080";
+        _baseUrl = configuration["OrderService:BaseUrl"] ?? defaultBaseUrl;
         
         if (string.IsNullOrWhiteSpace(_baseUrl) || !Uri.TryCreate(_baseUrl, UriKind.Absolute, out var uri))
         {
@@ -60,8 +60,8 @@ public class OrderServiceClient : IOrderServiceClient
         }
         catch (HttpRequestException ex)
         {
-            _logger.LogError(ex, "HTTP error calling Order Service for order {OrderId}: {Message}", orderId, ex.Message);
-            throw new Exception($"Erro ao buscar pedido no Order Service: {ex.Message}", ex);
+            _logger.LogError(ex, "HTTP error calling Order Service for order {OrderId} at {BaseUrl}", orderId, _baseUrl);
+            throw;
         }
         catch (Exception ex)
         {

@@ -23,28 +23,24 @@ public class WebhookService : IWebhookService
     {
         try
         {
-            _logger.LogInformation("Processando confirmação de pagamento: {PaymentId}", paymentId);
+            _logger.LogInformation("Processing payment confirmation: {PaymentId}", paymentId);
 
             var (status, orderId) = await _paymentStatusService.GetPaymentStatusAsync(paymentId);
 
-            _logger.LogInformation("Pagamento {PaymentId} consultado: Status={Status}, OrderId={OrderId}", 
-                paymentId, status, orderId);
-
             if (status != "approved")
             {
-                _logger.LogWarning("Pagamento {PaymentId} não aprovado. Status: {Status}", paymentId, status);
+                _logger.LogWarning("Payment {PaymentId} not approved. Status: {Status}", paymentId, status);
                 return;
             }
 
             var orderGuid = Guid.Parse(orderId);
             
-            _logger.LogInformation("Pagamento aprovado para Order {OrderId}. Pedido deve mudar status para RECEIVED.", orderGuid);
-            
-            _logger.LogInformation("Confirmação de pagamento processada com sucesso: {PaymentId}", paymentId);
+            _logger.LogInformation("Payment {PaymentId} approved for Order {OrderId}. Order status should change to RECEIVED.", 
+                paymentId, orderGuid);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Erro ao processar confirmação de pagamento: {PaymentId}", paymentId);
+            _logger.LogError(ex, "Error processing payment confirmation: {PaymentId}", paymentId);
         }
     }
 }
