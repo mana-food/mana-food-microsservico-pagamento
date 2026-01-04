@@ -41,8 +41,11 @@ ScaffoldingReadMe.txt
 *~
 CodeCoverage/
 coverage/
+coverage-report/
 *.coverage
 *.coveragexml
+*.cobertura.xml
+*.log
 
 # MSBuild Binary and Structured Log
 *.binlog
@@ -50,6 +53,7 @@ coverage/
 # MSTest test Results
 [Tt]est[Rr]esult*/
 [Bb]uild[Ll]og.*
+TestResults/
 
 # Environment variables - NEVER COMMIT THESE!
 .env
