@@ -18,8 +18,8 @@ public class PaymentService : IPaymentService
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
 
     public PaymentService(
-        HttpClient httpClient, 
-        IPaymentProviderConfig config, 
+        HttpClient httpClient,
+        IPaymentProviderConfig config,
         IOrderServiceClient orderServiceClient,
         ILogger<PaymentService> logger)
     {
@@ -32,17 +32,17 @@ public class PaymentService : IPaymentService
     public async Task<CreatePaymentResponseDto> CreatePaymentAsync(Guid orderId)
     {
         _logger.LogInformation("Creating payment for order {OrderId}", orderId);
-        
+
         // BUSCAR PEDIDO VIA REST DO ORDER SERVICE
         var orderDto = await _orderServiceClient.GetOrderByIdAsync(orderId);
 
         if (orderDto == null)
         {
             _logger.LogWarning("Order {OrderId} not found", orderId);
-            throw new Exception($"Pedido {orderId} não encontrado no Order Service.");
+            throw new InvalidOperationException($"Pedido {orderId} não encontrado no Order Service.");
         }
 
-        _logger.LogInformation("Order {OrderId} found with {ItemCount} items, total: {TotalAmount}", 
+        _logger.LogInformation("Order {OrderId} found with {ItemCount} items, total: {TotalAmount}",
             orderId, orderDto.Items.Count, orderDto.TotalAmount);
 
         var externalReference = orderDto.Id.ToString();
@@ -87,7 +87,7 @@ public class PaymentService : IPaymentService
 
         if (!response.IsSuccessStatusCode)
         {
-            throw new Exception($"Erro de chamada: {response.StatusCode}");
+            throw new HttpRequestException($"Erro ao criar pagamento no MercadoPago: {response.StatusCode}");
         }
 
         var responseContent = await response.Content.ReadAsStringAsync();
