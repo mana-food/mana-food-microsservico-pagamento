@@ -55,7 +55,8 @@ jobs:
             /d:sonar.host.url="$SONAR_HOST_URL" \
             /d:sonar.login="$SONAR_TOKEN" \
             /d:sonar.branch.name="main" \
-            /d:sonar.exclusions="**/bin/**,**/obj/**,**/*.dll,**/*.exe" \
-            /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml"
+            /d:sonar.exclusions="**/bin/**,**/obj/**,**/*.dll,**/*.exe,**/Migrations/**" \
+            /d:sonar.cs.vscoveragexml.reportsPaths="**/TestResults/**/*.coverage"
           dotnet build --no-incremental
+          dotnet test --no-build --collect:"Code Coverage"
           dotnet sonarscanner end /d:sonar.login="$SONAR_TOKEN"
