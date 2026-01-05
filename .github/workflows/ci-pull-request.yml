@@ -42,21 +42,32 @@ jobs:
         with:
           dotnet-version: '9.0.x'
 
-      - name: Executar Análise SonarQube
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }} 
+      - name: Restaurar dependências
+        run: dotnet restore
+
+      - name: Instalar ferramentas
         run: |
           dotnet tool install --global dotnet-sonarscanner
-          export PATH="$PATH:/home/runner/.dotnet/tools"
+          dotnet tool install --global dotnet-coverage
+
+      - name: Executar Análise SonarCloud
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
           dotnet sonarscanner begin \
             /k:"mana-food_mana-food-microsservico-pagamento" \
             /o:"mana-food" \
-            /d:sonar.host.url="$SONAR_HOST_URL" \
-            /d:sonar.login="$SONAR_TOKEN" \
-            /d:sonar.branch.name="main" \
-            /d:sonar.exclusions="**/bin/**,**/obj/**,**/*.dll,**/*.exe,**/Migrations/**" \
-            /d:sonar.cs.vscoveragexml.reportsPaths="**/TestResults/**/*.coverage"
-          dotnet build --no-incremental
-          dotnet test --no-build --collect:"Code Coverage"
-          dotnet sonarscanner end /d:sonar.login="$SONAR_TOKEN"
+            /d:sonar.host.url="https://sonarcloud.io" \
+            /d:sonar.token="$SONAR_TOKEN" \
+            /d:sonar.cs.vscoveragexml.reportsPaths="**/TestResults/**/*.xml" \
+            /d:sonar.coverage.exclusions="**/Program.cs,**/Migrations/**" \
+            /d:sonar.exclusions="**/bin/**,**/obj/**,**/*.dll,**/*.exe,**/Migrations/**"
+          dotnet build --configuration Release --no-incremental
+          dotnet test --configuration Release --no-build --collect:"Code Coverage"
+          echo "=== Converting .coverage files to XML ==="
+          for file in $(find . -name "*.coverage" -type f); do
+            echo "Converting: $file"
+            dotnet-coverage merge -f xml -o "${file%.coverage}.xml" "$file"
+          done
+          dotnet sonarscanner end /d:sonar.token="$SONAR_TOKEN"
