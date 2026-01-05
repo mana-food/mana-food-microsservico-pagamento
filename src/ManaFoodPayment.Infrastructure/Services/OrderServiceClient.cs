@@ -60,13 +60,8 @@ public class OrderServiceClient : IOrderServiceClient
         }
         catch (HttpRequestException ex)
         {
-            _logger.LogError(ex, "Failed to fetch order {OrderId} from Order Service at {BaseUrl}. HTTP error occurred.", orderId, _baseUrl);
+            _logger.LogError(ex, "Failed to fetch order {OrderId} from Order Service at {BaseUrl}", orderId, _baseUrl);
             throw new HttpRequestException($"Failed to communicate with Order Service for order {orderId}", ex);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Unexpected error while fetching order {OrderId} from Order Service", orderId);
-            throw new InvalidOperationException($"Unable to fetch order {orderId} due to an unexpected error", ex);
         }
     }
 }
