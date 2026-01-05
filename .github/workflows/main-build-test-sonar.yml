@@ -44,25 +44,31 @@ jobs:
             /o:"mana-food" \
             /d:sonar.host.url="https://sonarcloud.io" \
             /d:sonar.token="$SONAR_TOKEN" \
-            /d:sonar.cs.vscoveragexml.reportsPaths="**/TestResults/**/*.coverage" \
+            /d:sonar.cs.vscoveragexml.reportsPaths="**/TestResults/**/*.xml" \
             /d:sonar.coverage.exclusions="**/Program.cs,**/Migrations/**" \
             /d:sonar.exclusions="**/bin/**,**/obj/**,**/*.dll,**/*.exe,**/Migrations/**"
 
       - name: Build for Analysis
         run: dotnet build --configuration Release --no-incremental
 
+      - name: Install Coverage Tools
+        run: dotnet tool install --global dotnet-coverage
+      
       - name: Run Tests with Coverage
         run: |
           dotnet test --configuration Release --no-build --verbosity normal \
             --collect:"Code Coverage"
-
-      - name: List Coverage Files
+      
+      - name: Convert Coverage to XML
         run: |
-          echo "=== Coverage files generated ==="
-          find . -type f -name "*.coverage"
+          echo "=== Converting .coverage files to XML ==="
+          for file in $(find . -name "*.coverage" -type f); do
+            echo "Converting: $file"
+            dotnet-coverage merge -f xml -o "${file%.coverage}.xml" "$file"
+          done
           echo ""
-          echo "=== File details ==="
-          find . -type f -name "*.coverage" -exec ls -lh {} \;
+          echo "=== Converted XML files ==="
+          find . -name "*.xml" -path "*/TestResults/*" -type f -exec ls -lh {} \;
 
       - name: End SonarCloud Analysis
         env:
@@ -73,5 +79,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
-          path: '**/TestResults/**/*.coverage'
+          path: '**/TestResults/**/*.xml'
           retention-days: 30
