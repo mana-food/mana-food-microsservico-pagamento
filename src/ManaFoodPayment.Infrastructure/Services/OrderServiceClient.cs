@@ -8,8 +8,6 @@ using Microsoft.Extensions.Logging;
 
 public class OrderServiceClient : IOrderServiceClient
 {
-    private const string DefaultBaseUrl = "http://order-api-service:8080";
-    
     private readonly HttpClient _httpClient;
     private readonly ILogger<OrderServiceClient> _logger;
     private readonly string _baseUrl;
@@ -22,11 +20,12 @@ public class OrderServiceClient : IOrderServiceClient
         _httpClient = httpClient;
         _logger = logger;
         
-        _baseUrl = configuration["OrderService:BaseUrl"] ?? DefaultBaseUrl;
+        _baseUrl = configuration["OrderService:BaseUrl"] 
+            ?? throw new InvalidOperationException("OrderService:BaseUrl configuration is required");
         
-        if (string.IsNullOrWhiteSpace(_baseUrl) || !Uri.TryCreate(_baseUrl, UriKind.Absolute, out var uri))
+        if (!Uri.TryCreate(_baseUrl, UriKind.Absolute, out var uri))
         {
-            throw new ArgumentException("Invalid OrderService BaseUrl configuration", nameof(configuration));
+            throw new ArgumentException($"Invalid OrderService BaseUrl: {_baseUrl}", nameof(configuration));
         }
 
         _httpClient.BaseAddress = uri;

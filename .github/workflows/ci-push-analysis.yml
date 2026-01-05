@@ -28,13 +28,11 @@ jobs:
       - name: Rodar Testes e Cobertura
         run: |
           dotnet test --configuration Release --no-build --verbosity normal \
-            /p:CollectCoverage=true \
-            /p:CoverletOutputFormat=opencover \
-            /p:CoverletOutput=./TestResults/
+            --collect:"Code Coverage"
 
       - name: Upload cobertura de código
         uses: actions/upload-artifact@v4
         with:
-          name: cobertura-opencover
-          path: '**/TestResults/coverage.opencover.xml'
+          name: cobertura-code-coverage
+          path: '**/TestResults/**/*.coverage'
           retention-days: 7
