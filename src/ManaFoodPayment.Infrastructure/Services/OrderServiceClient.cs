@@ -8,6 +8,8 @@ using Microsoft.Extensions.Logging;
 
 public class OrderServiceClient : IOrderServiceClient
 {
+    private const string DefaultBaseUrl = "http://order-api-service:8080";
+    
     private readonly HttpClient _httpClient;
     private readonly ILogger<OrderServiceClient> _logger;
     private readonly string _baseUrl;
@@ -20,9 +22,7 @@ public class OrderServiceClient : IOrderServiceClient
         _httpClient = httpClient;
         _logger = logger;
         
-        // Default para desenvolvimento local - em producao, appsettings/ConfigMap
-        const string defaultBaseUrl = "http://order-api-service:8080";
-        _baseUrl = configuration["OrderService:BaseUrl"] ?? defaultBaseUrl;
+        _baseUrl = configuration["OrderService:BaseUrl"] ?? DefaultBaseUrl;
         
         if (string.IsNullOrWhiteSpace(_baseUrl) || !Uri.TryCreate(_baseUrl, UriKind.Absolute, out var uri))
         {
@@ -60,13 +60,13 @@ public class OrderServiceClient : IOrderServiceClient
         }
         catch (HttpRequestException ex)
         {
-            _logger.LogError(ex, "HTTP error calling Order Service for order {OrderId} at {BaseUrl}", orderId, _baseUrl);
-            throw;
+            _logger.LogError(ex, "Failed to fetch order {OrderId} from Order Service at {BaseUrl}. HTTP error occurred.", orderId, _baseUrl);
+            throw new HttpRequestException($"Failed to communicate with Order Service for order {orderId}", ex);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error fetching order {OrderId}: {Message}", orderId, ex.Message);
-            throw;
+            _logger.LogError(ex, "Unexpected error while fetching order {OrderId} from Order Service", orderId);
+            throw new InvalidOperationException($"Unable to fetch order {orderId} due to an unexpected error", ex);
         }
     }
 }
