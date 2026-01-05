@@ -152,10 +152,10 @@ public class OrderServiceClientTests
         var emptyConfig = new Mock<IConfiguration>();
         emptyConfig.Setup(c => c["OrderService:BaseUrl"]).Returns((string?)null);
 
-        var client = new OrderServiceClient(_httpClient, emptyConfig.Object, _mockLogger.Object);
+        var exception = Assert.Throws<InvalidOperationException>(() =>
+            new OrderServiceClient(_httpClient, emptyConfig.Object, _mockLogger.Object));
 
-        _httpClient.BaseAddress.Should().NotBeNull();
-        _httpClient.BaseAddress!.ToString().Should().Be("http://order-api-service:8080/");
+        exception.Message.Should().Be("OrderService:BaseUrl configuration is required");
     }
 
     [Fact]
@@ -185,13 +185,13 @@ public class OrderServiceClientTests
     }
 
     [Fact]
-    public void Constructor_WithNullBaseUrl_UsesDefaultValue()
+    public void Constructor_WithNullBaseUrl_ThrowsInvalidOperationException()
     {
         _mockConfiguration.Setup(c => c["OrderService:BaseUrl"]).Returns((string?)null);
 
-        var client = new OrderServiceClient(_httpClient, _mockConfiguration.Object, _mockLogger.Object);
+        var exception = Assert.Throws<InvalidOperationException>(() =>
+            new OrderServiceClient(_httpClient, _mockConfiguration.Object, _mockLogger.Object));
 
-        _httpClient.BaseAddress.Should().NotBeNull();
-        _httpClient.BaseAddress!.ToString().Should().Be("http://order-api-service:8080/");
+        exception.Message.Should().Be("OrderService:BaseUrl configuration is required");
     }
 }
