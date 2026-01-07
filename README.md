@@ -242,7 +242,6 @@ Edite `src/ManaFoodPayment.Api/appsettings.json`:
   - Consulta status no MercadoPago via API
   - Se status = "approved", extrai OrderId do external_reference
   - Loga a confirmação (stateless, sem persistência)
-  - No monolito, o Order Service atualiza status para RECEIVED
 
 ### Health Check
 
@@ -285,7 +284,6 @@ Comunicação direta com a API do Mercado Pago para:
 8. MercadoPago → Payment Service: POST /api/webhooks/.../payment-confirmation
 9. Payment Service → MercadoPago: GET /v1/payments/{paymentId} (validar status)
 10. Payment Service: Loga "Pagamento aprovado para Order {orderId}"
-11. (No monolito: Order Service atualiza status → RECEIVED)
 ```
 
 ---
