@@ -357,7 +357,7 @@ https://miro.com/app/board/uXjVIHWEfCI=/
 Este projeto segue os princípios de Clean Architecture com **arquitetura stateless**:
 
 - ✅ **Independência de Frameworks**: A lógica de negócio não depende de frameworks externos
-- ✅ **Testabilidade**: Todas as camadas são testáveis isoladamente (27 testes, 100% passing)
+- ✅ **Testabilidade**: Todas as camadas são testáveis isoladamente
 - ✅ **Independência de UI**: A camada de apresentação pode ser substituída sem afetar o core
 - ✅ **Independência de Banco de Dados**: Sem persistência local (stateless)
 - ✅ **Regras de Negócio Isoladas**: O domínio contém apenas regras de negócio puras (enums)
