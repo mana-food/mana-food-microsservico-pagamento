@@ -15,6 +15,8 @@ builder.Services.AddScoped<IWebhookService, WebhookService>();
 builder.Services.AddScoped<IPaymentProviderConfig, PaymentProviderConfig>(sp => 
     sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<PaymentProviderConfig>>().Value);
 
+
+builder.Services.AddHealthChecks();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
