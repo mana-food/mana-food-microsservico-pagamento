@@ -93,12 +93,12 @@ public class OrderServiceClient : IOrderServiceClient
         catch (HttpRequestException ex)
         {
             _logger.LogError(ex, "HTTP error confirming payment for order {OrderId}", orderId);
-            throw;
+            throw new HttpRequestException($"Failed to confirm payment for order {orderId} with Order Service", ex);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error confirming payment for order {OrderId}", orderId);
-            throw;
+            throw new InvalidOperationException($"Unexpected error confirming payment for order {orderId}", ex);
         }
     }
 }
