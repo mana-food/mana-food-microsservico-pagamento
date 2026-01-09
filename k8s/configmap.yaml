@@ -7,4 +7,4 @@ data:
   Logging__LogLevel__Default: "Information"
   Logging__LogLevel__Microsoft.AspNetCore: "Warning"
   AllowedHosts: "*"
-  OrderService__BaseUrl: "http://order-service:8080"
+  OrderService__BaseUrl: "http://order-service:80"
