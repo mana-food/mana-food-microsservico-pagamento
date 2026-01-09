@@ -10,11 +10,13 @@ namespace ManaFoodPayment.UnitTests.Infrastructure;
 public class WebhookServiceTests
 {
     private readonly Mock<IPaymentStatusService> _mockPaymentStatusService;
+    private readonly Mock<IOrderServiceClient> _mockOrderServiceClient;
     private readonly Mock<ILogger<WebhookService>> _mockLogger;
 
     public WebhookServiceTests()
     {
         _mockPaymentStatusService = new Mock<IPaymentStatusService>();
+        _mockOrderServiceClient = new Mock<IOrderServiceClient>();
         _mockLogger = new Mock<ILogger<WebhookService>>();
     }
 
@@ -28,11 +30,12 @@ public class WebhookServiceTests
             .Setup(s => s.GetPaymentStatusAsync(paymentId))
             .ReturnsAsync(("approved", orderId));
 
-        var service = new WebhookService(_mockPaymentStatusService.Object, _mockLogger.Object);
+        var service = new WebhookService(_mockPaymentStatusService.Object, _mockOrderServiceClient.Object, _mockLogger.Object);
 
         await service.ProcessPaymentConfirmationAsync(paymentId);
 
         _mockPaymentStatusService.Verify(s => s.GetPaymentStatusAsync(paymentId), Times.Once);
+        _mockOrderServiceClient.Verify(s => s.UpdateOrderStatusAsync(It.IsAny<Guid>(), "RECEIVED"), Times.Once);
     }
 
     [Fact]
@@ -45,11 +48,12 @@ public class WebhookServiceTests
             .Setup(s => s.GetPaymentStatusAsync(paymentId))
             .ReturnsAsync(("rejected", orderId));
 
-        var service = new WebhookService(_mockPaymentStatusService.Object, _mockLogger.Object);
+        var service = new WebhookService(_mockPaymentStatusService.Object, _mockOrderServiceClient.Object, _mockLogger.Object);
 
         await service.ProcessPaymentConfirmationAsync(paymentId);
 
         _mockPaymentStatusService.Verify(s => s.GetPaymentStatusAsync(paymentId), Times.Once);
+        _mockOrderServiceClient.Verify(s => s.UpdateOrderStatusAsync(It.IsAny<Guid>(), It.IsAny<string>()), Times.Never);
     }
 
     [Fact]
@@ -62,11 +66,12 @@ public class WebhookServiceTests
             .Setup(s => s.GetPaymentStatusAsync(paymentId))
             .ReturnsAsync(("pending", orderId));
 
-        var service = new WebhookService(_mockPaymentStatusService.Object, _mockLogger.Object);
+        var service = new WebhookService(_mockPaymentStatusService.Object, _mockOrderServiceClient.Object, _mockLogger.Object);
 
         await service.ProcessPaymentConfirmationAsync(paymentId);
 
         _mockPaymentStatusService.Verify(s => s.GetPaymentStatusAsync(paymentId), Times.Once);
+        _mockOrderServiceClient.Verify(s => s.UpdateOrderStatusAsync(It.IsAny<Guid>(), It.IsAny<string>()), Times.Never);
     }
 
     [Fact]
@@ -78,7 +83,7 @@ public class WebhookServiceTests
             .Setup(s => s.GetPaymentStatusAsync(paymentId))
             .ThrowsAsync(new Exception("Test exception"));
 
-        var service = new WebhookService(_mockPaymentStatusService.Object, _mockLogger.Object);
+        var service = new WebhookService(_mockPaymentStatusService.Object, _mockOrderServiceClient.Object, _mockLogger.Object);
 
         await service.ProcessPaymentConfirmationAsync(paymentId);
 
@@ -95,11 +100,12 @@ public class WebhookServiceTests
             .Setup(s => s.GetPaymentStatusAsync(paymentId))
             .ReturnsAsync(("approved", orderId.ToString()));
 
-        var service = new WebhookService(_mockPaymentStatusService.Object, _mockLogger.Object);
+        var service = new WebhookService(_mockPaymentStatusService.Object, _mockOrderServiceClient.Object, _mockLogger.Object);
 
         await service.ProcessPaymentConfirmationAsync(paymentId);
 
         _mockPaymentStatusService.Verify(s => s.GetPaymentStatusAsync(paymentId), Times.Once);
+        _mockOrderServiceClient.Verify(s => s.UpdateOrderStatusAsync(orderId, "RECEIVED"), Times.Once);
     }
 
     [Fact]
@@ -112,7 +118,7 @@ public class WebhookServiceTests
             .Setup(s => s.GetPaymentStatusAsync(paymentId))
             .ReturnsAsync(("approved", invalidOrderId));
 
-        var service = new WebhookService(_mockPaymentStatusService.Object, _mockLogger.Object);
+        var service = new WebhookService(_mockPaymentStatusService.Object, _mockOrderServiceClient.Object, _mockLogger.Object);
 
         await service.ProcessPaymentConfirmationAsync(paymentId);
 

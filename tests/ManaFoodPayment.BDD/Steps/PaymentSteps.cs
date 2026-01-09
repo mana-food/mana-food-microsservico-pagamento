@@ -185,6 +185,7 @@ public class PaymentSteps
     {
         _webhookService = new WebhookService(
             _mockPaymentStatusService.Object,
+            _mockOrderServiceClient.Object,
             _mockWebhookLogger.Object);
 
         try

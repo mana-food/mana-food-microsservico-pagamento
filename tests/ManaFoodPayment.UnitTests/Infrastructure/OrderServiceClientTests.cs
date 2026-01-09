@@ -121,7 +121,7 @@ public class OrderServiceClientTests
 
         capturedRequest.Should().NotBeNull();
         capturedRequest!.RequestUri.Should().NotBeNull();
-        capturedRequest.RequestUri!.PathAndQuery.Should().Be($"/api/orders/{orderId}");
+        capturedRequest.RequestUri!.PathAndQuery.Should().Be($"/api/order/{orderId}");
     }
 
     [Fact]
@@ -193,5 +193,127 @@ public class OrderServiceClientTests
             new OrderServiceClient(_httpClient, _mockConfiguration.Object, _mockLogger.Object));
 
         exception.Message.Should().Be("OrderService:BaseUrl configuration is required");
+    }
+
+    [Fact]
+    public async Task UpdateOrderStatusAsync_WithSuccessfulResponse_CompletesSuccessfully()
+    {
+        var orderId = Guid.NewGuid();
+
+        _mockHttpMessageHandler
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK
+            });
+
+        var client = new OrderServiceClient(_httpClient, _mockConfiguration.Object, _mockLogger.Object);
+
+        var act = async () => await client.UpdateOrderStatusAsync(orderId, "Paid");
+
+        await act.Should().NotThrowAsync();
+    }
+
+    [Fact]
+    public async Task UpdateOrderStatusAsync_UsesCorrectEndpoint()
+    {
+        var orderId = Guid.NewGuid();
+
+        HttpRequestMessage? capturedRequest = null;
+        _mockHttpMessageHandler
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .Callback<HttpRequestMessage, CancellationToken>((req, _) => capturedRequest = req)
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK
+            });
+
+        var client = new OrderServiceClient(_httpClient, _mockConfiguration.Object, _mockLogger.Object);
+
+        await client.UpdateOrderStatusAsync(orderId, "Paid");
+
+        capturedRequest.Should().NotBeNull();
+        capturedRequest!.Method.Should().Be(HttpMethod.Post);
+        capturedRequest.RequestUri.Should().NotBeNull();
+        capturedRequest.RequestUri!.PathAndQuery.Should().Be($"/api/order/{orderId}/confirm-payment");
+    }
+
+    [Fact]
+    public async Task UpdateOrderStatusAsync_WithFailedResponse_ThrowsHttpRequestException()
+    {
+        var orderId = Guid.NewGuid();
+
+        _mockHttpMessageHandler
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.BadRequest
+            });
+
+        var client = new OrderServiceClient(_httpClient, _mockConfiguration.Object, _mockLogger.Object);
+
+        var exception = await Assert.ThrowsAsync<HttpRequestException>(async () =>
+            await client.UpdateOrderStatusAsync(orderId, "Paid"));
+
+        exception.Message.Should().Contain("Failed to confirm payment for order");
+        exception.InnerException.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task UpdateOrderStatusAsync_WithHttpRequestException_WrapsException()
+    {
+        var orderId = Guid.NewGuid();
+
+        _mockHttpMessageHandler
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .ThrowsAsync(new HttpRequestException("Connection refused"));
+
+        var client = new OrderServiceClient(_httpClient, _mockConfiguration.Object, _mockLogger.Object);
+
+        var exception = await Assert.ThrowsAsync<HttpRequestException>(async () =>
+            await client.UpdateOrderStatusAsync(orderId, "Paid"));
+
+        exception.Message.Should().Contain("Failed to confirm payment for order");
+        exception.InnerException.Should().NotBeNull();
+        exception.InnerException!.Message.Should().Contain("Connection refused");
+    }
+
+    [Fact]
+    public async Task UpdateOrderStatusAsync_WithGenericException_WrapsAsInvalidOperationException()
+    {
+        var orderId = Guid.NewGuid();
+
+        _mockHttpMessageHandler
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .ThrowsAsync(new InvalidOperationException("Unexpected error"));
+
+        var client = new OrderServiceClient(_httpClient, _mockConfiguration.Object, _mockLogger.Object);
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await client.UpdateOrderStatusAsync(orderId, "Paid"));
+
+        exception.Message.Should().Contain("Unexpected error confirming payment for order");
+        exception.InnerException.Should().NotBeNull();
+        exception.InnerException!.Message.Should().Contain("Unexpected error");
     }
 }
