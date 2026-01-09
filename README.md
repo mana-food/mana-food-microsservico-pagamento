@@ -44,7 +44,7 @@ mana-food-microsservico-pagamento/
 - **.NET 9.0** com Clean Architecture
 - **Mercado Pago API** para geração de QR Codes e validação de status
 - **QRCoder** para geração de imagens QR Code
-- **xUnit** + **Moq** + **FluentAssertions** para testes unitários (23 testes)
+- **xUnit** + **Moq** + **FluentAssertions** para testes unitários
 - **SpecFlow** para testes BDD (4 cenários em Gherkin português)
 
 ## 📋 Pré-requisitos
@@ -199,7 +199,7 @@ Edite `src/ManaFoodPayment.Api/appsettings.json`:
   },
   "AllowedHosts": "*",
   "OrderService": {
-    "BaseUrl": "http://order-api-service:8080"
+    "BaseUrl": "http://order-service:8080"
   }
 }
 ```
@@ -255,14 +255,19 @@ Edite `src/ManaFoodPayment.Api/appsettings.json`:
 
 O Payment Service se comunica com o Order Service via REST HTTP:
 
-- **Endpoint**: `GET /api/orders/{orderId}`
-- **Propósito**: Buscar detalhes do pedido (itens, preços, cliente) para gerar o QR Code
+- **Endpoint GET**: `GET /api/order/{orderId}`
+  - **Propósito**: Buscar detalhes do pedido (itens, preços, cliente) para gerar o QR Code
+  
+- **Endpoint POST**: `POST /api/order/{orderId}/confirm-payment`
+  - **Propósito**: Confirmar pagamento aprovado e atualizar status do pedido
+  
 - **Configuração**: `OrderService:BaseUrl` no appsettings.json
 - **Fluxo**:
   1. Cliente solicita pagamento com `orderId`
-  2. Payment Service consulta Order Service (REST HTTP)
+  2. Payment Service consulta Order Service (REST HTTP GET)
   3. Gera QR Code com dados do pedido
   4. Retorna QR Code para o cliente
+  5. Quando pagamento é aprovado, chama Order Service (REST HTTP POST) para confirmar
 
 ### Mercado Pago
 
@@ -275,7 +280,7 @@ Comunicação direta com a API do Mercado Pago para:
 
 ```
 1. Cliente → Payment Service: POST /api/payment/create {orderId}
-2. Payment Service → Order Service: GET /api/orders/{orderId}
+2. Payment Service → Order Service: GET /api/order/{orderId}
 3. Order Service → Payment Service: OrderDto (items, prices, total)
 4. Payment Service → MercadoPago: PUT /instore/orders/qr/... (criar QR Code)
 5. MercadoPago → Payment Service: QR Code data + paymentId
@@ -283,7 +288,8 @@ Comunicação direta com a API do Mercado Pago para:
 7. Cliente paga via App MercadoPago escaneando QR Code
 8. MercadoPago → Payment Service: POST /api/webhooks/.../payment-confirmation
 9. Payment Service → MercadoPago: GET /v1/payments/{paymentId} (validar status)
-10. Payment Service: Loga "Pagamento aprovado para Order {orderId}"
+10. Payment Service → Order Service: POST /api/order/{orderId}/confirm-payment
+11. Order Service atualiza status do pedido para RECEIVED
 ```
 
 ---

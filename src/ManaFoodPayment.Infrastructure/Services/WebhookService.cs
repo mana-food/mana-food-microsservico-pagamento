@@ -3,19 +3,19 @@ using Microsoft.Extensions.Logging;
 
 namespace ManaFoodPayment.Infrastructure.Services;
 
-/// <summary>
-/// Serviço de processamento de webhooks - Padrão ConfirmPaymentHandler contido no monolito
-/// </summary>
 public class WebhookService : IWebhookService
 {
     private readonly IPaymentStatusService _paymentStatusService;
+    private readonly IOrderServiceClient _orderServiceClient;
     private readonly ILogger<WebhookService> _logger;
 
     public WebhookService(
         IPaymentStatusService paymentStatusService,
+        IOrderServiceClient orderServiceClient,
         ILogger<WebhookService> logger)
     {
         _paymentStatusService = paymentStatusService;
+        _orderServiceClient = orderServiceClient;
         _logger = logger;
     }
 
@@ -35,8 +35,19 @@ public class WebhookService : IWebhookService
 
             var orderGuid = Guid.Parse(orderId);
             
-            _logger.LogInformation("Payment {PaymentId} approved for Order {OrderId}. Order status should change to RECEIVED.", 
-                paymentId, orderGuid);
+            // ✅ ATUALIZA O STATUS DO PEDIDO (Requisito: "atualizando o status do pedido")
+            try
+            {
+                await _orderServiceClient.UpdateOrderStatusAsync(orderGuid, "RECEIVED");
+                _logger.LogInformation("Payment {PaymentId} approved and Order {OrderId} status updated to RECEIVED successfully", 
+                    paymentId, orderGuid);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to update order {OrderId} status after payment approval. Payment was approved but order status may not have been updated.", orderGuid);
+                // Não propaga a exceção para não quebrar o webhook do MercadoPago
+                // Em produção, implementar fila de retry
+            }
         }
         catch (Exception ex)
         {
