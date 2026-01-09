@@ -11,7 +11,7 @@ services:
       - "8082:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - OrderService__BaseUrl=http://order-api-service:8080
+      - OrderService__BaseUrl=http://order-service:8080
     networks:
       - manafood-network
 

@@ -121,7 +121,7 @@ public class OrderServiceClientTests
 
         capturedRequest.Should().NotBeNull();
         capturedRequest!.RequestUri.Should().NotBeNull();
-        capturedRequest.RequestUri!.PathAndQuery.Should().Be($"/api/orders/{orderId}");
+        capturedRequest.RequestUri!.PathAndQuery.Should().Be($"/api/order/{orderId}");
     }
 
     [Fact]

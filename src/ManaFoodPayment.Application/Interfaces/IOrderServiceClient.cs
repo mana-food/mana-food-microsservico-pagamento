@@ -5,4 +5,5 @@ using ManaFoodPayment.Application.Dtos;
 public interface IOrderServiceClient
 {
     Task<OrderResponseDto?> GetOrderByIdAsync(Guid orderId);
+    Task UpdateOrderStatusAsync(Guid orderId, string status);
 }
