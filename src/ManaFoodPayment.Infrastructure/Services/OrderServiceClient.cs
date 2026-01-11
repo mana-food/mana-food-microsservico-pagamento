@@ -40,7 +40,7 @@ public class OrderServiceClient : IOrderServiceClient
         {
             _logger.LogInformation("Fetching order {OrderId} from Order Service at {BaseUrl}", orderId, _baseUrl);
 
-            var response = await _httpClient.GetAsync($"/api/order/{orderId}");
+            var response = await _httpClient.GetAsync($"/api/orders/{orderId}");
 
             if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
@@ -70,14 +70,12 @@ public class OrderServiceClient : IOrderServiceClient
         {
             _logger.LogInformation("Confirming payment for order {OrderId} in Order Service", orderId);
 
-            // Order Service espera apenas um objeto vazio ou mínimo
-            // O endpoint é: POST /api/order/{id}/confirm-payment
             var content = new StringContent(
                 System.Text.Json.JsonSerializer.Serialize(new { }),
                 System.Text.Encoding.UTF8,
                 "application/json");
 
-            var response = await _httpClient.PostAsync($"/api/order/{orderId}/confirm-payment", content);
+            var response = await _httpClient.PostAsync($"/api/orders/{orderId}/confirm-payment", content);
 
             if (response.IsSuccessStatusCode)
             {
