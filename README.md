@@ -34,18 +34,20 @@ mana-food-microsservico-pagamento/
 
 ### Descrição das Camadas
 
-- **Api**: Controllers da API REST, webhooks do Mercado Pago, configurações do ASP.NET Core
-- **Application**: DTOs para transferência de dados, interfaces de serviços
+- **Api**: Controllers da API REST (Payment, Test), webhooks do Mercado Pago, documentação XML completa, configurações do ASP.NET Core e Swagger
+- **Application**: DTOs para transferência de dados, interfaces de serviços, casos de uso
 - **Domain**: Enums (PaymentMethod) e regras de negócio puras
-- **Infrastructure**: Serviços de comunicação com MercadoPago API e Order Service (REST HTTP)
+- **Infrastructure**: Serviços de comunicação com MercadoPago API e Order Service (REST HTTP), políticas de resiliência com Polly
 
 ### Tecnologias
 
 - **.NET 9.0** com Clean Architecture
 - **Mercado Pago API** para geração de QR Codes e validação de status
 - **QRCoder** para geração de imagens QR Code
+- **Swagger/OpenAPI** contém todos os endpoints
 - **xUnit** + **Moq** + **FluentAssertions** para testes unitários
 - **SpecFlow** para testes BDD (4 cenários em Gherkin português)
+- **SonarCloud** para análise de qualidade e cobertura de código
 
 ## 📋 Pré-requisitos
 
@@ -180,8 +182,9 @@ dotnet test --collect:"XPlat Code Coverage"
 
 ### Estrutura de Testes
 
-- **23 testes unitários**: Cobrem serviços, DTOs e lógica de negócio
-- **4 testes BDD**: Cenários de negócio escritos em Gherkin (português)
+- **Testes unitários**: Cobrem serviços, DTOs, controllers, webhooks e lógica de negócio
+- **Testes BDD**: Cenários de negócio escritos em Gherkin (português)
+- **Cobertura**: Acima de 80% conforme validado pelo SonarCloud
 
 ## ⚙️ Configuração
 
@@ -242,6 +245,23 @@ Edite `src/ManaFoodPayment.Api/appsettings.json`:
   - Consulta status no MercadoPago via API
   - Se status = "approved", extrai OrderId do external_reference
   - Loga a confirmação (stateless, sem persistência)
+
+### Endpoints de Teste e Simulação
+
+- `POST /api/test/simulate-webhook` - Simula um webhook do Mercado Pago para testes locais
+  ```json
+  {
+    "data": {
+      "id": "12345678"
+    }
+  }
+  ```
+  **Propósito**: Permite testar o fluxo de confirmação de pagamento sem depender de pagamentos reais
+
+- `GET /api/test/webhook-payload-example` - Retorna exemplo de payload de webhook
+  **Propósito**: Documentação e referência para estrutura correta do payload
+
+- `GET /api/test/health` - Health check do ambiente de testes
 
 ### Health Check
 
