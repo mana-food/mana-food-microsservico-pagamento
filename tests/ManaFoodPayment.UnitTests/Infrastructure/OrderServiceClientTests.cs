@@ -121,7 +121,7 @@ public class OrderServiceClientTests
 
         capturedRequest.Should().NotBeNull();
         capturedRequest!.RequestUri.Should().NotBeNull();
-        capturedRequest.RequestUri!.PathAndQuery.Should().Be($"/api/order/{orderId}");
+        capturedRequest.RequestUri!.PathAndQuery.Should().Be($"/api/orders/{orderId}");
     }
 
     [Fact]
@@ -243,7 +243,7 @@ public class OrderServiceClientTests
         capturedRequest.Should().NotBeNull();
         capturedRequest!.Method.Should().Be(HttpMethod.Post);
         capturedRequest.RequestUri.Should().NotBeNull();
-        capturedRequest.RequestUri!.PathAndQuery.Should().Be($"/api/order/{orderId}/confirm-payment");
+        capturedRequest.RequestUri!.PathAndQuery.Should().Be($"/api/orders/{orderId}/confirm-payment");
     }
 
     [Fact]
