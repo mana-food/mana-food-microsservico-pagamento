@@ -35,10 +35,13 @@ builder.Services.AddSwaggerGen(options =>
         }
     });
 
-    // Habilitar comentários XML
+    // Habilitar comentários XML se o arquivo existir
     var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-    options.IncludeXmlComments(xmlPath);
+    if (File.Exists(xmlPath))
+    {
+        options.IncludeXmlComments(xmlPath);
+    }
 });
 
 var app = builder.Build();
