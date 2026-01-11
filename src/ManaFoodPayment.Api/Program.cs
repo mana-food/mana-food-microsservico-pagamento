@@ -1,6 +1,8 @@
 using ManaFoodPayment.Application.Interfaces;
 using ManaFoodPayment.Infrastructure.Configurations;
 using ManaFoodPayment.Infrastructure.Services;
+using System.Reflection;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,7 +21,25 @@ builder.Services.AddScoped<IPaymentProviderConfig, PaymentProviderConfig>(sp =>
 builder.Services.AddHealthChecks();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "ManaFood - Payment Service API",
+        Version = "v1",
+        Description = "API para gerenciamento de pagamentos via QR Code do Mercado Pago",
+        Contact = new OpenApiContact
+        {
+            Name = "ManaFood Team",
+            Url = new Uri("https://github.com/mana-food/mana-food-microsservico-pagamento")
+        }
+    });
+
+    // Habilitar comentários XML
+    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    options.IncludeXmlComments(xmlPath);
+});
 
 var app = builder.Build();
 
