@@ -13,6 +13,15 @@ public class TestController : ControllerBase
 {
     private readonly IWebhookService _webhookService;
     private readonly ILogger<TestController> _logger;
+    
+    private static readonly string[] WebhookInstructions = 
+    {
+        "1. Crie um pedido no Order Service",
+        "2. Gere um pagamento via POST /api/payment/create",
+        "3. Copie o paymentId retornado",
+        "4. Use este payload substituindo o ID",
+        "5. Envie para POST /api/test/simulate-webhook"
+    };
 
     public TestController(
         IWebhookService webhookService,
@@ -93,7 +102,7 @@ public class TestController : ControllerBase
     /// </remarks>
     /// <response code="200">Exemplo de payload retornado</response>
     [HttpGet("webhook-payload-example")]
-    [ProducesResponseType(typeof(MercadoPagoWebhookPayload), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
     public IActionResult GetWebhookPayloadExample()
     {
         var example = new MercadoPagoWebhookPayload
@@ -109,14 +118,7 @@ public class TestController : ControllerBase
             description = "Exemplo de payload para simular webhook do MercadoPago",
             usage = "POST /api/test/simulate-webhook",
             payload = example,
-            instructions = new[]
-            {
-                "1. Crie um pedido no Order Service",
-                "2. Gere um pagamento via POST /api/payment/create",
-                "3. Copie o paymentId retornado",
-                "4. Use este payload substituindo o ID",
-                "5. Envie para POST /api/test/simulate-webhook"
-            }
+            instructions = WebhookInstructions
         });
     }
 
@@ -124,7 +126,7 @@ public class TestController : ControllerBase
     /// Health check do serviço de teste
     /// </summary>
     [HttpGet("health")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
     public IActionResult Health()
     {
         return Ok(new
